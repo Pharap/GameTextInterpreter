@@ -1,7 +1,5 @@
 // Arduboy GTI player
-// NOTE! You must add the following lines to your library for this to compile:
-// arduboy.h: uint8_t getCursorX(); uint8_t getCursorY();
-// arduboy.cpp: uint8_t Arduboy::getCursorX() { return cursor_x; } uint8_t Arduboy::getCursorY() { return cursor_y; }
+
 // replace char gti[]  with your compiled game bytecode by using compiler.py and bin2array.py -- it is currently silence.bin now
 
 #define ON 1
@@ -9,17 +7,18 @@
 
 // Standard includes for Arduboy 
  
-#include <SPI.h>
 #include <EEPROM.h>
-#include "Arduboy.h"
+#include <Arduboy2.h>
+#include <ArduboyTones.h>
 #include <avr/pgmspace.h>
-Arduboy display;
+Arduboy2 arduboy;
+ArduboyTones sound(arduboy.audio.enabled);
 
 // Game options
 // Interpreter size tuning (turning off some interpreter support can save PROGMEM memory, but code must not contain related bytecodes (unless stated!)
 
 #define SOUND ON             // 574 bytes (If support is disabled, bytecode is skipped properly)
-#define SERIAL OFF           // 182 bytes (no impact on bytecode interpreting)
+#define USE_SERIAL OFF       // 182 bytes (no impact on bytecode interpreting)
 
 #define VARIABLES ON
 #define MUSIC ON
@@ -28,8 +27,8 @@ Arduboy display;
 
 // Button definition
 
-#define FIRE_BUTTON 1
-#define JUMP_BUTTON 2
+#define FIRE_BUTTON B_BUTTON
+#define JUMP_BUTTON A_BUTTON
 #define RIGHT 4
 #define DOWN 64
 #define UP 16
@@ -63,13 +62,12 @@ unsigned char exitb[80] = "";
 
 
 void setup() {
-  SPI.begin();
-  display.start();
-  display.clearDisplay();
+  arduboy.begin();
+  arduboy.clear();
   showIntro();
-  display.clearDisplay();
-  display.display();
-  #if SERIAL == ON
+  arduboy.clear();
+  arduboy.display();
+  #if USE_SERIAL == ON
   Serial.begin(9600);
   #endif
 }
@@ -81,22 +79,22 @@ startVM(0);
 void showIntro()    // Show Arduino retro intro
 {
    for(int i=-8; i<28; i=i+2) {
-    display.clearDisplay();
-    display.drawSlowXYBitmap(46,i, arduino, 32,8,1);
-    display.display();
+    arduboy.clear();
+    arduboy.drawSlowXYBitmap(46,i, arduino, 32,8,1);
+    arduboy.display();
     delay(1000/30);
   }  
   #if SOUND == ON
-   display.tunes.tone(987, 160);
+   sound.tone(987, 160);
     delay(160);
-   display.tunes.tone(1318, 400);
+   sound.tone(1318, 400);
    delay(2000);
   #endif
 }
 
 void startVM(uint16_t pc) {
  while(1) {  
-  uint16_t type = pgm_read_byte_near(&(gti[pc])) << 8 | pgm_read_byte_near(&(gti[pc+1])) & 0xFF;  // Read in type of frame
+  uint16_t type = (pgm_read_byte_near(&(gti[pc])) << 8) | (pgm_read_byte_near(&(gti[pc+1])) & 0xFF);  // Read in type of frame
   pc++;                                                                                           // bump program counter
   col = 0;                                                                                        // reset columns in text display
   if(type == 65535) {                                                                             // SPECIAL Frame Detected
@@ -114,8 +112,8 @@ void startVM(uint16_t pc) {
              if(buff == 0) { break; }                                                             // is it a null? then we are done printing text
              printer(pgm_read_byte_near(&(gti[pc])));                                             // print out the text using our text output handler
            }
-           display.print("*GAME OVER*");                                                          // print generic Game Over message
-           #if SERIAL == ON
+           arduboy.print("*GAME OVER*");                                                          // print generic Game Over message
+           #if USE_SERIAL == ON
            Serial.print("*GAME OVER*");                                                           // if the serial port is turned on, print message over serial
            #endif
            anykey();                                                                              // wait for anykey
@@ -127,7 +125,7 @@ void startVM(uint16_t pc) {
            
        case 5:                                                                                    // Jump handler
            pc++;                                                                                  // bump the program counter
-           pc = pgm_read_byte_near(&(gti[pc])) << 8 | pgm_read_byte_near(&(gti[pc+1])) & 0xFF;    // Set the program counter to the address in 16 bit field
+           pc = (pgm_read_byte_near(&(gti[pc])) << 8) | (pgm_read_byte_near(&(gti[pc+1])) & 0xFF);    // Set the program counter to the address in 16 bit field
            break;                                                                                 // switch break
            
        // 0x0D - Effects Library    
@@ -144,22 +142,23 @@ void startVM(uint16_t pc) {
                case 0:                                                                            // rumble handler
                    #if SOUND == ON                                                                // Is sound turned on?
                    for(int x = 60; x < 150; x++) {                                                // Low frequency sweep 
-                   display.tunes.tone(x, 10);  delay(10); }                                       // Play our low frequency sweep
+                   sound.tone(x, 10);  delay(10); }                                       // Play our low frequency sweep
                    #endif                                                                         // end sound check
                    break;                                                                         // switch break
                   
                // 0x01 - Random lightning flash   
                    
                case 1:                                                                            // Random lightning flash 
-                   for(int x = 0; x < 100; x++) {                                                 // Small loop for our flashes
+                   for(int x = 0; x < 50; x++) {                                                  // Small loop for our flashes
                      if(random(0,10) == 1) {                                                      // 1 in 10 chance of a flash
-                            display.fillScreen(WHITE);                                            // Fill screen with white
-                            display.display();                                                    // push it out
+                            arduboy.fillScreen(WHITE);                                            // Fill screen with white
+                            arduboy.display();                                                    // push it out
                      } 
                      else {                                                                       // Not a 1 in 10 chance?
-                            display.fillScreen(BLACK);                                            // Make screen black
-                            display.display();                                                    // Push it out
+                            arduboy.fillScreen(BLACK);                                            // Make screen black
+                            arduboy.display();                                                    // Push it out
                      } 
+                     delay(20);
                    }
                    break;                                                                         // switch break
             }  
@@ -192,7 +191,7 @@ void startVM(uint16_t pc) {
      // Jump A description buffer
     
       pc++;                                                                                                   // bump program counter
-      uint16_t alterexit = pgm_read_byte_near(&(gti[pc])) << 8 | pgm_read_byte_near(&(gti[pc+1])) & 0xFF;     // get jump b address
+      uint16_t alterexit = (pgm_read_byte_near(&(gti[pc])) << 8) | (pgm_read_byte_near(&(gti[pc+1])) & 0xFF); // get jump b address
       pc++; pc++;                                                                                             // bump program counter
       int i = 0;                                                                                              // initalize i (to keep track of array position)
       while(1 == 1) {                                                                                         // fill jump a description buffer
@@ -225,17 +224,17 @@ void startVM(uint16_t pc) {
       }  
       pc++; 
       #if SOUND == ON
-      display.tunes.tone(1318, 50); 
+      sound.tone(1318, 50); 
       #endif
-      display.fillRect(display.getCursorX(),display.getCursorY(),8,8,BLACK); display.display();
-      if(display.getCursorY() < 40) { display.print("\n"); 
-      #if SERIAL == ON
+      arduboy.fillRect(arduboy.getCursorX(),arduboy.getCursorY(),8,8,BLACK); arduboy.display();
+      if(arduboy.getCursorY() < 40) { arduboy.print("\n"); 
+      #if USE_SERIAL == ON
       Serial.println();
       #endif
       } 
       
-      display.print("\nA] ");  display.display();  col=3; 
-      #if SERIAL == ON
+      arduboy.print("\nA] ");  arduboy.display();  col=3; 
+      #if USE_SERIAL == ON
       Serial.print("\nA] ");
       #endif
        x = 0;
@@ -246,11 +245,11 @@ void startVM(uint16_t pc) {
       }  
       x = 0; 
       #if SOUND == ON
-      display.tunes.tone(1318, 50); 
+      sound.tone(1318, 50); 
       #endif
-      display.fillRect(display.getCursorX(),display.getCursorY(),8,8,BLACK); display.display();
-      display.print("\nB] ");  display.display(); col=3;
-      #if SERIAL == ON
+      arduboy.fillRect(arduboy.getCursorX(),arduboy.getCursorY(),8,8,BLACK); arduboy.display();
+      arduboy.print("\nB] ");  arduboy.display(); col=3;
+      #if USE_SERIAL == ON
       Serial.print("\nB] ");
       #endif      
        while(1) { 
@@ -258,13 +257,13 @@ void startVM(uint16_t pc) {
              printer(exitb[x]);
              x++;
       } 
-      display.fillRect(display.getCursorX(),display.getCursorY(),8,8,BLACK); display.display();
+      arduboy.fillRect(arduboy.getCursorX(),arduboy.getCursorY(),8,8,BLACK); arduboy.display();
       int selection = select();
       if(selection == 0) { pc = type; } 
       if(selection == 1) { pc = alterexit; } 
-      display.clearDisplay();
-      display.setCursor(0,0);
-      display.display();
+      arduboy.clear();
+      arduboy.setCursor(0,0);
+      arduboy.display();
       col = 0;
   }
 }
@@ -275,19 +274,19 @@ void settings() { anykey(); }
 
 void printer(uint8_t character) { 
  col++;
- if(col > 20) {  display.fillRect(display.getCursorX(),display.getCursorY(),8,8,BLACK); display.println(); col = 0; 
- #if SERIAL == ON
+ if(col > 20) {  arduboy.fillRect(arduboy.getCursorX(),arduboy.getCursorY(),8,8,BLACK); arduboy.println(); col = 0; 
+ #if USE_SERIAL == ON
  Serial.print("\n"); 
  #endif
  } 
- if(character == 10) { display.fillRect(display.getCursorX(),display.getCursorY(),8,8,BLACK); col = 0; } 
- display.print((char)character);
+ if(character == 10) { arduboy.fillRect(arduboy.getCursorX(),arduboy.getCursorY(),8,8,BLACK); col = 0; } 
+ arduboy.print((char)character);
  #if SOUND == ON
- display.tunes.tone(1318, 2);
+ sound.tone(1318, 2);
  #endif
- display.fillRect(display.getCursorX(),display.getCursorY(),8,8,WHITE); 
- display.display();
- #if SERIAL == ON
+ arduboy.fillRect(arduboy.getCursorX(),arduboy.getCursorY(),8,8,WHITE); 
+ arduboy.display();
+ #if USE_SERIAL == ON
  Serial.print((char)character);
  #endif 
  delay(50);
@@ -296,62 +295,62 @@ void printer(uint8_t character) {
 uint8_t select() { 
   uint8_t c = 0; uint8_t blink = 0; 
   #if SOUND == ON
-     display.tunes.tone(1318, 50);  delay(50);
-    display.tunes.tone(400, 50); delay(50);
-    display.tunes.tone(600, 50); delay(50); 
+     sound.tone(1318, 50);  delay(50);
+    sound.tone(400, 50); delay(50);
+    sound.tone(600, 50); delay(50); 
   #endif
   while(1) { 
-   if(display.pressed(FIRE_BUTTON)) { return 1; } 
-   if(display.pressed(JUMP_BUTTON)) { return 0; } 
+   if(arduboy.pressed(FIRE_BUTTON)) { return 1; } 
+   if(arduboy.pressed(JUMP_BUTTON)) { return 0; } 
    
        c++; 
-    if(c > 10000) { 
+    if(c > 40) { 
        if(blink == 1) {  
-         display.fillRect(120,55,10,10,WHITE); 
-         display.display(); 
+         arduboy.fillRect(120,55,10,10,WHITE); 
+         arduboy.display(); 
          blink = 0; } 
        else { 
-         display.fillRect(120,55,10,10,BLACK); 
-         display.display();  
+         arduboy.fillRect(120,55,10,10,BLACK); 
+         arduboy.display();  
          blink = 1; 
        } 
      c = 0;
    }    
-   
+  delay(10); 
   }
 }
 
 void anykey() { 
-  display.fillRect(display.getCursorX(),display.getCursorY(),8,8,BLACK); display.display(); 
+  arduboy.fillRect(arduboy.getCursorX(),arduboy.getCursorY(),8,8,BLACK); arduboy.display(); 
   #if SOUND == ON
-    display.tunes.tone(600, 50);  delay(50);
-    display.tunes.tone(1318, 50); delay(50);
-    display.tunes.tone(900, 50); delay(50);
+    sound.tone(600, 50);  delay(50);
+    sound.tone(1318, 50); delay(50);
+    sound.tone(900, 50); delay(50);
   #endif
-    int c = 0;
-    int blink = 0;  
+    uint8_t c = 0;
+    uint8_t blink = 0;  
   while(1) { 
-   if(display.pressed(FIRE_BUTTON) || display.pressed(JUMP_BUTTON)) { break; } 
+   if(arduboy.pressed(FIRE_BUTTON) || arduboy.pressed(JUMP_BUTTON)) { break; } 
    #if SERIAL == ON
    if(Serial.available()) { Serial.read(); Serial.read(); Serial.read(); break; } 
    #endif
     c++; 
-    if(c > 10000) { 
+    if(c > 40) { 
        if(blink == 1) {  
-         display.fillRect(120,55,10,10,WHITE); 
-         display.display(); 
+         arduboy.fillRect(120,55,10,10,WHITE); 
+         arduboy.display(); 
          blink = 0; } 
        else { 
-         display.fillRect(120,55,10,10,BLACK); 
-         display.display();  
+         arduboy.fillRect(120,55,10,10,BLACK); 
+         arduboy.display();  
          blink = 1; 
        } 
      c = 0;
-   }    
    }
-  display.setCursor(0,0); display.clearDisplay(); display.display(); 
+   delay(10);    
+   }
+  arduboy.setCursor(0,0); arduboy.clear(); arduboy.display(); 
   #if SERIAL == ON
   Serial.println("\n"); 
   #endif
 }
-
