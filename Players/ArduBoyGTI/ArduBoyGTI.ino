@@ -109,8 +109,8 @@ void startVM(uint16_t pc) {
            while(1) {                                                                             // loop over text until we hit a null
              pc++;                                                                                // bump program counter
              uint8_t buff = pgm_read_byte_near(&(gti[pc]));                                       // read a chracter
+             printer(buff);                                                                       // print out the text using our text output handler
              if(buff == 0) { break; }                                                             // is it a null? then we are done printing text
-             printer(pgm_read_byte_near(&(gti[pc])));                                             // print out the text using our text output handler
            }
            arduboy.print("*GAME OVER*");                                                          // print generic Game Over message
            #if USE_SERIAL == ON
@@ -174,8 +174,8 @@ void startVM(uint16_t pc) {
            while(1) {                                                                             // print some text until we find a null
              pc++;                                                                                // Bump program counter
              uint8_t buff = pgm_read_byte_near(&(gti[pc]));                                       // Read a character
+             printer(buff);                                                                       // Send text off to our printer 
              if(buff == 0) { break; }                                                             // Is it null? then break out of loop
-             printer(pgm_read_byte_near(&(gti[pc])));                                             // Send text off to our printer 
            }         
            anykey();                                                                              // Wait for any key 
            pc++;                                                                                  // Bump program counter
@@ -219,28 +219,28 @@ void startVM(uint16_t pc) {
       while(1) {                                                                                              // print the main description text, null terminated
              pc++;                                                                                            // bump program counter
              uint8_t buff = pgm_read_byte_near(&(gti[pc]));                                                   // get character from main description
+             printer(buff);                                                                                   // Print out our newest character
              if(buff == 0) { break; }                                                                         // did we find a null? stop printing description
-             printer(pgm_read_byte_near(&(gti[pc])));                                                         // Print out our newest character
       }  
       pc++; 
       #if SOUND == ON
       sound.tone(1318, 50); 
       #endif
       arduboy.fillRect(arduboy.getCursorX(),arduboy.getCursorY(),8,8,BLACK); arduboy.display();
-      if(arduboy.getCursorY() < 40) { arduboy.print("\n"); 
+      if(arduboy.getCursorY() < 48) { arduboy.print("\n"); 
       #if USE_SERIAL == ON
       Serial.println();
       #endif
       } 
-      
-      arduboy.print("\nA] ");  arduboy.display();  col=3; 
+        
+      printer('A'); printer(']'); printer(' '); arduboy.display();
       #if USE_SERIAL == ON
       Serial.print("\nA] ");
       #endif
        x = 0;
        while(1) { 
-             if(exita[x] == 0) { break; } 
              printer(exita[x]);
+             if(exita[x] == 0) { break; } 
              x++; 
       }  
       x = 0; 
@@ -248,13 +248,13 @@ void startVM(uint16_t pc) {
       sound.tone(1318, 50); 
       #endif
       arduboy.fillRect(arduboy.getCursorX(),arduboy.getCursorY(),8,8,BLACK); arduboy.display();
-      arduboy.print("\nB] ");  arduboy.display(); col=3;
+      printer('B'); printer(']'); printer(' '); arduboy.display();
       #if USE_SERIAL == ON
       Serial.print("\nB] ");
       #endif      
        while(1) { 
-             if(exitb[x] == 0) { break; } 
              printer(exitb[x]);
+             if(exitb[x] == 0) { break; } 
              x++;
       } 
       arduboy.fillRect(arduboy.getCursorX(),arduboy.getCursorY(),8,8,BLACK); arduboy.display();
@@ -262,7 +262,6 @@ void startVM(uint16_t pc) {
       if(selection == 0) { pc = type; } 
       if(selection == 1) { pc = alterexit; } 
       arduboy.clear();
-      arduboy.setCursor(0,0);
       arduboy.display();
       col = 0;
   }
@@ -272,24 +271,54 @@ void startVM(uint16_t pc) {
 
 void settings() { anykey(); } 
 
-void printer(uint8_t character) { 
- col++;
- if(col > 20) {  arduboy.fillRect(arduboy.getCursorX(),arduboy.getCursorY(),8,8,BLACK); arduboy.println(); col = 0; 
- #if USE_SERIAL == ON
- Serial.print("\n"); 
- #endif
- } 
- if(character == 10) { arduboy.fillRect(arduboy.getCursorX(),arduboy.getCursorY(),8,8,BLACK); col = 0; } 
- arduboy.print((char)character);
- #if SOUND == ON
- sound.tone(1318, 2);
- #endif
- arduboy.fillRect(arduboy.getCursorX(),arduboy.getCursorY(),8,8,WHITE); 
- arduboy.display();
- #if USE_SERIAL == ON
- Serial.print((char)character);
- #endif 
- delay(50);
+constexpr uint8_t charsPerLine = 21;
+constexpr uint8_t linebufferSize = charsPerLine + 1; // one extra to detect end of line word break
+constexpr uint8_t linebufferLastPos = charsPerLine; 
+static uint8_t lineBuffer[linebufferSize];
+
+void printer(uint8_t character) {
+    lineBuffer[col] = character;
+    if ((character >= 32) & (col < (linebufferLastPos))) { //return no special characters and buffer not full
+        ++col;
+        return;  
+    }
+    if (arduboy.getCursorY() >= HEIGHT) {
+        for (uint16_t i = 0; i < HEIGHT * WIDTH / 8 - WIDTH; i++) arduboy.sBuffer[i] =  arduboy.sBuffer[i+128]; //scroll up
+        for (uint8_t i = 0; i < WIDTH; i++) arduboy.sBuffer[HEIGHT * WIDTH / 8 - WIDTH + i] = 0; //clear bottom line
+        arduboy.setCursor(arduboy.getCursorX(),HEIGHT - 8);
+    }
+    uint8_t brk = col;
+    while (brk> 0) {
+        if (lineBuffer[brk] > 32) --brk;
+        else break;
+    }
+    if (brk == 0) brk = col; //no word break
+    if (brk == linebufferLastPos) {
+        --brk; // exclude 1st character of next line
+        if (lineBuffer[linebufferLastPos] == 32); --col; //remove space at start of next line
+    }
+    for (uint8_t i = 0; i <= brk; i++) {
+        character = lineBuffer[i];
+        if(character >= 32) 
+        {
+            arduboy.print((char)character);
+            #if USE_SERIAL == ON
+            Serial.print((char)character);
+            #endif 
+        }
+        #if SOUND == ON
+        sound.tone(1318, 2);
+        #endif
+        arduboy.fillRect(arduboy.getCursorX(),arduboy.getCursorY(),8,8,WHITE); 
+        arduboy.display();
+        delay(50);
+    }
+    col -= brk; // remaining characters for next line
+    for (uint8_t i = 0; i <= col; i++) lineBuffer[i] = lineBuffer[brk+i+1]; //move remaining character to start of buffer 
+    arduboy.fillRect(arduboy.getCursorX(),arduboy.getCursorY(),8,8,BLACK); arduboy.println();
+    #if USE_SERIAL == ON
+    Serial.print("\n"); 
+    #endif
 }
 
 uint8_t select() { 
@@ -349,7 +378,7 @@ void anykey() {
    }
    delay(10);    
    }
-  arduboy.setCursor(0,0); arduboy.clear(); arduboy.display(); 
+  arduboy.clear(); arduboy.display(); 
   #if SERIAL == ON
   Serial.println("\n"); 
   #endif
