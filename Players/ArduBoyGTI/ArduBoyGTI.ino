@@ -93,7 +93,7 @@ void showIntro()    // Show Arduino retro intro
 }
 
 void startVM(uint16_t pc) {
- while(1) {  
+ while(true) {  
   uint16_t type = (pgm_read_byte_near(&(gti[pc])) << 8) | (pgm_read_byte_near(&(gti[pc+1])) & 0xFF);  // Read in type of frame
   pc++;                                                                                           // bump program counter
   col = 0;                                                                                        // reset columns in text display
@@ -106,7 +106,7 @@ void startVM(uint16_t pc) {
        // 0x00 - Game Over
 
        case 0:                                                                                    // Game Over handler
-           while(1) {                                                                             // loop over text until we hit a null
+           while(true) {                                                                             // loop over text until we hit a null
              pc++;                                                                                // bump program counter
              uint8_t buff = pgm_read_byte_near(&(gti[pc]));                                       // read a chracter
              printer(buff);                                                                       // print out the text using our text output handler
@@ -171,7 +171,7 @@ void startVM(uint16_t pc) {
        // 0x10 - Display page of text and wait for any key
        
        case 16:                                                                                   // text handler
-           while(1) {                                                                             // print some text until we find a null
+           while(true) {                                                                             // print some text until we find a null
              pc++;                                                                                // Bump program counter
              uint8_t buff = pgm_read_byte_near(&(gti[pc]));                                       // Read a character
              printer(buff);                                                                       // Send text off to our printer 
@@ -194,7 +194,7 @@ void startVM(uint16_t pc) {
       uint16_t alterexit = (pgm_read_byte_near(&(gti[pc])) << 8) | (pgm_read_byte_near(&(gti[pc+1])) & 0xFF); // get jump b address
       pc++; pc++;                                                                                             // bump program counter
       int i = 0;                                                                                              // initalize i (to keep track of array position)
-      while(1 == 1) {                                                                                         // fill jump a description buffer
+      while(true) {                                                                                         // fill jump a description buffer
         uint8_t buff = pgm_read_byte_near(&(gti[pc]));                                                        // get a chracter
         if(buff == 0) { exita[i] = 0; break; }                                                                // Is it null? append the null to array then stop
         exita[i] = buff;                                                                                      // fill array with newest character
@@ -205,7 +205,7 @@ void startVM(uint16_t pc) {
       
       pc++;                                                                                                   // bump program counter
       i = 0;                                                                                                  // reset array position
-      while(1 == 1) {                                                                                         // fill jump b description buffer 
+      while(true) {                                                                                         // fill jump b description buffer 
         uint8_t buff = pgm_read_byte_near(&(gti[pc]));                                                        // get a character
         if(buff == 0) { exitb[i] = 0; break; }                                                                // Is it null? append the null to array then stop
         exitb[i] = buff;                                                                                      // fill array with newest character
@@ -216,7 +216,7 @@ void startVM(uint16_t pc) {
  
       // Main description printing (since the description goes before the jump selections)
       
-      while(1) {                                                                                              // print the main description text, null terminated
+      while(true) {                                                                                              // print the main description text, null terminated
              pc++;                                                                                            // bump program counter
              uint8_t buff = pgm_read_byte_near(&(gti[pc]));                                                   // get character from main description
              printer(buff);                                                                                   // Print out our newest character
@@ -238,7 +238,7 @@ void startVM(uint16_t pc) {
       Serial.print("\nA] ");
       #endif
        x = 0;
-       while(1) { 
+       while(true) { 
              printer(exita[x]);
              if(exita[x] == 0) { break; } 
              x++; 
@@ -252,7 +252,7 @@ void startVM(uint16_t pc) {
       #if USE_SERIAL == ON
       Serial.print("\nB] ");
       #endif      
-       while(1) { 
+       while(true) { 
              printer(exitb[x]);
              if(exitb[x] == 0) { break; } 
              x++;
@@ -328,7 +328,7 @@ uint8_t select() {
     sound.tone(400, 50); delay(50);
     sound.tone(600, 50); delay(50); 
   #endif
-  while(1) { 
+  while(true) { 
    if(arduboy.pressed(FIRE_BUTTON)) { return 1; } 
    if(arduboy.pressed(JUMP_BUTTON)) { return 0; } 
    
@@ -358,7 +358,7 @@ void anykey() {
   #endif
     uint8_t c = 0;
     uint8_t blink = 0;  
-  while(1) { 
+  while(true) { 
    if(arduboy.pressed(FIRE_BUTTON) || arduboy.pressed(JUMP_BUTTON)) { break; } 
    #if SERIAL == ON
    if(Serial.available()) { Serial.read(); Serial.read(); Serial.read(); break; } 
