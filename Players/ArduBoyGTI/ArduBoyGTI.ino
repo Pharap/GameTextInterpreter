@@ -41,7 +41,6 @@ uint16_t room = 0;
 uint8_t inst = 0;
 uint8_t col = 0;
 uint8_t row = 0;
-uint8_t effect = 0;
 
 extern const unsigned char arduino[];
 
@@ -182,6 +181,20 @@ void showIntro()    // Show Arduino retro intro
   #endif
 }
 
+enum class Mode : uint8_t
+{
+  GameOver = 0x00,
+  Jump = 0x05,
+  Effect = 0x0D,
+  Text = 0x10,
+};
+
+enum class Effect : uint8_t
+{
+  Rumble = 0x00,
+  Lightning = 0x01,
+};
+
 void startVM()
 {
   while(true)
@@ -196,12 +209,11 @@ void startVM()
     if(type == 65535)
     {
       // Get the special packet mode
-      uint8_t mode { readByte() };
+      const Mode mode { static_cast<Mode>(readByte()) };
 
       switch (mode)
       {
-        // 0x00 - Game Over
-        case 0:
+        case Mode::GameOver:
         {
           // Print text until a null character is found
           printText();
@@ -225,8 +237,7 @@ void startVM()
           return;
         }
 
-        // 0x05 - Jump
-        case 5:
+        case Mode::Jump:
         {
           // Set the program counter to the address in 16 bit field
           pc = readWord();
@@ -234,19 +245,18 @@ void startVM()
           break;
         }
 
-        // 0x0D - Effects Library
-        case 13:
+        case Mode::Effect:
         {
           // If the effects library is switched on
           #if SFXLIB == ON
 
           // Get the effect type
-          effect = readByte();
+          const Effect effect { static_cast<Effect>(readByte()) };
 
           switch(effect)
           {
-            // 0x00 - Low pitched rumbling sound
-            case 0:
+            // Low pitched rumbling sound
+            case Effect::Rumble:
             {
               // If sound is turned on
               #if SOUND == ON
@@ -261,8 +271,8 @@ void startVM()
               break;
             }
 
-            // 0x01 - Random lightning flash
-            case 1:
+            // Random lightning flash
+            case Effect::Lightning:
             {
               // A small loop for lightning flashes
               for(int x = 0; x < 50; x++)
@@ -280,8 +290,7 @@ void startVM()
           break;
         }
 
-        // 0x10 - Display page of text and wait for any key
-        case 16:
+        case Mode::Text:
         {
           // Print text until a null character is found
           printText();
