@@ -218,6 +218,9 @@ void startVM()
           // Wait for a key press
           anykey();
 
+          // Reset program counter
+          pc = 0;
+
           // Exit the virtual machine
           return;
         }
