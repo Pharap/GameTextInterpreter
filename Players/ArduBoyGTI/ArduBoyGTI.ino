@@ -62,6 +62,18 @@ char exitb[80] {};
 
 uint16_t pc { 0 };
 
+char readCharacter()
+{
+  // Read the byte
+  const uint8_t result { pgm_read_byte(&gti[pc]) };
+
+  // Increment the program counter
+  ++pc;
+
+  // Return the result
+  return result;
+}
+
 uint8_t readByte()
 {
   // Read the byte
@@ -144,7 +156,7 @@ void startVM()
           // Print text until a null character is found
           while(true)
           {
-            const char character { readByte() };
+            const char character { readCharacter() };
 
             printer(character);
 
@@ -229,7 +241,7 @@ void startVM()
           // Print text until a null character is found
           while(true)
           {
-            const char character { readByte() };
+            const char character { readCharacter() };
 
             printer(character);
 
@@ -256,7 +268,7 @@ void startVM()
       // Copy null-terminated string to exita buffer
       for(uint8_t index = 0; true; ++index)
       {
-        const char character { readByte() };
+        const char character { readCharacter() };
 
         exita[index] = character;
 
@@ -267,7 +279,7 @@ void startVM()
       // Copy null-terminated string to exitb buffer
       for(uint8_t index = 0; true; ++index)
       {
-        const char character { readByte() };
+        const char character { readCharacter() };
 
         exitb[index] = character;
 
@@ -278,7 +290,7 @@ void startVM()
       // Print the room description (a null-terminated string)
       while(true)
       {
-        const char character { readByte() };
+        const char character { readCharacter() };
 
         printer(character);
 
