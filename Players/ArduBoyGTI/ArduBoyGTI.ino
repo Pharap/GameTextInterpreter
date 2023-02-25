@@ -491,64 +491,101 @@ void printer(char character)
   #endif
 }
 
-uint8_t select() { 
-  uint8_t c = 0; uint8_t blink = 0; 
+uint8_t select()
+{
   #if SOUND == ON
-     sound.tone(1318, 50);  delay(50);
-    sound.tone(400, 50); delay(50);
-    sound.tone(600, 50); delay(50); 
+    sound.tone(1318, 50);
+    delay(50);
+
+    sound.tone(400, 50);
+    delay(50);
+
+    sound.tone(600, 50);
+    delay(50); 
   #endif
-  while(true) { 
-   if(arduboy.pressed(FIRE_BUTTON)) { return 1; } 
-   if(arduboy.pressed(JUMP_BUTTON)) { return 0; } 
-   
-       c++; 
-    if(c > 40) { 
-       if(blink == 1) {  
-         arduboy.fillRect(120,55,10,10,WHITE); 
-         arduboy.display(); 
-         blink = 0; } 
-       else { 
-         arduboy.fillRect(120,55,10,10,BLACK); 
-         arduboy.display();  
-         blink = 1; 
-       } 
-     c = 0;
-   }    
-  delay(10); 
+
+  bool blink { false };
+  uint8_t counter { 0 };
+
+  while(true)
+  {
+    if(arduboy.pressed(FIRE_BUTTON))
+      return 1;
+
+    if(arduboy.pressed(JUMP_BUTTON))
+      return 0;
+
+    ++counter;
+
+    if(counter > 40)
+    {
+      counter = 0;
+      blink = !blink;
+
+      // Draw blinking cursor
+      arduboy.fillRect(120, 55, 10, 10, blink ? WHITE : BLACK);
+      arduboy.display();
+    }
+
+    delay(10);
   }
 }
 
-void anykey() { 
-  arduboy.fillRect(arduboy.getCursorX(),arduboy.getCursorY(),8,8,BLACK); arduboy.display(); 
+void anykey()
+{ 
+  arduboy.fillRect(arduboy.getCursorX(), arduboy.getCursorY(), 8, 8, BLACK);
+  arduboy.display(); 
+
   #if SOUND == ON
-    sound.tone(600, 50);  delay(50);
-    sound.tone(1318, 50); delay(50);
-    sound.tone(900, 50); delay(50);
+    sound.tone(600, 50);
+    delay(50);
+
+    sound.tone(1318, 50);
+    delay(50);
+
+    sound.tone(900, 50);
+    delay(50);
   #endif
-    uint8_t c = 0;
-    uint8_t blink = 0;  
-  while(true) { 
-   if(arduboy.pressed(FIRE_BUTTON) || arduboy.pressed(JUMP_BUTTON)) { break; } 
-   #if SERIAL == ON
-   if(Serial.available()) { Serial.read(); Serial.read(); Serial.read(); break; } 
-   #endif
-    c++; 
-    if(c > 40) { 
-       if(blink == 1) {  
-         arduboy.fillRect(120,55,10,10,WHITE); 
-         arduboy.display(); 
-         blink = 0; } 
-       else { 
-         arduboy.fillRect(120,55,10,10,BLACK); 
-         arduboy.display();  
-         blink = 1; 
-       } 
-     c = 0;
-   }
-   delay(10);    
-   }
-  arduboy.clear(); arduboy.display(); 
+
+  bool blink { false };
+  uint8_t counter { 0 };
+
+  while(true)
+  {
+    if(arduboy.pressed(FIRE_BUTTON))
+      break;
+
+    if(arduboy.pressed(JUMP_BUTTON))
+      break;
+
+    #if SERIAL == ON
+    if(Serial.available())
+    {
+      Serial.read();
+      Serial.read();
+      Serial.read();
+      break;
+    } 
+    #endif
+
+    ++counter;
+
+    if(counter > 40)
+    {
+      counter = 0;
+      blink = !blink;
+
+      // Draw blinking cursor
+      arduboy.fillRect(120, 55, 10, 10, blink ? WHITE : BLACK);
+      arduboy.display();
+    }
+
+    delay(10);
+  }
+
+  arduboy.clear();
+  arduboy.display();
+
   #if SERIAL == ON
   Serial.println("\n"); 
   #endif
