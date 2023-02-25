@@ -57,8 +57,8 @@ const unsigned char gti[] PROGMEM = {
 
 // ^^^^^^^^^^^^^^^^^^^^
 
-unsigned char exita[80] = "";
-unsigned char exitb[80] = "";
+char exita[80] {};
+char exitb[80] {};
 
 
 void setup() {
@@ -108,9 +108,9 @@ void startVM(uint16_t pc) {
        case 0:                                                                                    // Game Over handler
            while(true) {                                                                             // loop over text until we hit a null
              pc++;                                                                                // bump program counter
-             uint8_t buff = pgm_read_byte_near(&(gti[pc]));                                       // read a chracter
+             char buff = pgm_read_byte_near(&(gti[pc]));                                       // read a chracter
              printer(buff);                                                                       // print out the text using our text output handler
-             if(buff == 0) { break; }                                                             // is it a null? then we are done printing text
+             if(buff == '\0') { break; }                                                             // is it a null? then we are done printing text
            }
            arduboy.print("*GAME OVER*");                                                          // print generic Game Over message
            #if USE_SERIAL == ON
@@ -173,9 +173,9 @@ void startVM(uint16_t pc) {
        case 16:                                                                                   // text handler
            while(true) {                                                                             // print some text until we find a null
              pc++;                                                                                // Bump program counter
-             uint8_t buff = pgm_read_byte_near(&(gti[pc]));                                       // Read a character
+             char buff = pgm_read_byte_near(&(gti[pc]));                                       // Read a character
              printer(buff);                                                                       // Send text off to our printer 
-             if(buff == 0) { break; }                                                             // Is it null? then break out of loop
+             if(buff == '\0') { break; }                                                             // Is it null? then break out of loop
            }         
            anykey();                                                                              // Wait for any key 
            pc++;                                                                                  // Bump program counter
@@ -195,8 +195,8 @@ void startVM(uint16_t pc) {
       pc++; pc++;                                                                                             // bump program counter
       int i = 0;                                                                                              // initalize i (to keep track of array position)
       while(true) {                                                                                         // fill jump a description buffer
-        uint8_t buff = pgm_read_byte_near(&(gti[pc]));                                                        // get a chracter
-        if(buff == 0) { exita[i] = 0; break; }                                                                // Is it null? append the null to array then stop
+        char buff = pgm_read_byte_near(&(gti[pc]));                                                        // get a chracter
+        if(buff == '\0') { exita[i] = 0; break; }                                                                // Is it null? append the null to array then stop
         exita[i] = buff;                                                                                      // fill array with newest character
         i++; pc++;                                                                                            // bump array position and program counter
       }
@@ -206,8 +206,8 @@ void startVM(uint16_t pc) {
       pc++;                                                                                                   // bump program counter
       i = 0;                                                                                                  // reset array position
       while(true) {                                                                                         // fill jump b description buffer 
-        uint8_t buff = pgm_read_byte_near(&(gti[pc]));                                                        // get a character
-        if(buff == 0) { exitb[i] = 0; break; }                                                                // Is it null? append the null to array then stop
+        char buff = pgm_read_byte_near(&(gti[pc]));                                                        // get a character
+        if(buff == '\0') { exitb[i] = 0; break; }                                                                // Is it null? append the null to array then stop
         exitb[i] = buff;                                                                                      // fill array with newest character
         i++; pc++;                                                                                            // bump array position and program counter
       } 
@@ -218,9 +218,9 @@ void startVM(uint16_t pc) {
       
       while(true) {                                                                                              // print the main description text, null terminated
              pc++;                                                                                            // bump program counter
-             uint8_t buff = pgm_read_byte_near(&(gti[pc]));                                                   // get character from main description
+             char buff = pgm_read_byte_near(&(gti[pc]));                                                   // get character from main description
              printer(buff);                                                                                   // Print out our newest character
-             if(buff == 0) { break; }                                                                         // did we find a null? stop printing description
+             if(buff == '\0') { break; }                                                                         // did we find a null? stop printing description
       }  
       pc++; 
       #if SOUND == ON
@@ -274,11 +274,11 @@ void settings() { anykey(); }
 constexpr uint8_t charsPerLine = 21;
 constexpr uint8_t linebufferSize = charsPerLine + 1; // one extra to detect end of line word break
 constexpr uint8_t linebufferLastPos = charsPerLine; 
-static uint8_t lineBuffer[linebufferSize];
+static char lineBuffer[linebufferSize];
 
-void printer(uint8_t character) {
+void printer(char character) {
     lineBuffer[col] = character;
-    if ((character >= 32) & (col < (linebufferLastPos))) { //return no special characters and buffer not full
+    if ((character >= ' ') & (col < (linebufferLastPos))) { //return no special characters and buffer not full
         ++col;
         return;  
     }
@@ -299,11 +299,11 @@ void printer(uint8_t character) {
     }
     for (uint8_t i = 0; i <= brk; i++) {
         character = lineBuffer[i];
-        if(character >= 32) 
+        if(character >= ' ') 
         {
-            arduboy.print((char)character);
+            arduboy.print(character);
             #if USE_SERIAL == ON
-            Serial.print((char)character);
+            Serial.print(character);
             #endif 
         }
         #if SOUND == ON
