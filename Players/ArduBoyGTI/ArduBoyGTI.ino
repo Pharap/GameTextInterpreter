@@ -101,7 +101,7 @@ void setup() {
 }
 
 void loop() {
-startVM(0);
+  startVM();
 }
 
 void showIntro()    // Show Arduino retro intro
@@ -120,7 +120,7 @@ void showIntro()    // Show Arduino retro intro
   #endif
 }
 
-void startVM(uint16_t pc) {
+void startVM() {
  while(true) {  
   uint16_t type = (pgm_read_byte_near(&(gti[pc])) << 8) | (pgm_read_byte_near(&(gti[pc+1])) & 0xFF);  // Read in type of frame
   pc++;                                                                                           // bump program counter
