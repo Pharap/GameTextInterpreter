@@ -60,6 +60,34 @@ const unsigned char gti[] PROGMEM = {
 char exita[80] {};
 char exitb[80] {};
 
+uint16_t pc { 0 };
+
+uint8_t readByte()
+{
+  // Read the byte
+  const uint8_t result { pgm_read_byte(&gti[pc]) };
+
+  // Increment the program counter
+  ++pc;
+
+  // Return the result
+  return result;
+}
+
+uint16_t readWord()
+{
+  // Read the high byte
+  const uint8_t high { readByte() };
+
+  // Read the low byte
+  const uint8_t low  { readByte() };
+
+  // Combine the bytes into a single result
+  const uint16_t result { (static_cast<uint16_t>(high) << 8) | (static_cast<uint16_t>(low) << 0) };
+
+  // Return the result
+  return result;
+}
 
 void setup() {
   arduboy.begin();
