@@ -120,181 +120,260 @@ void showIntro()    // Show Arduino retro intro
   #endif
 }
 
-void startVM() {
- while(true) {
-  // Read in type of frame
-  uint16_t type { readWord() };
+void startVM()
+{
+  while(true)
+  {
+    // Read frame type
+    const uint16_t type { readWord() };
 
-  col = 0;                                                                                        // reset columns in text display
-  if(type == 65535) {                                                                             // SPECIAL Frame Detected
-     // Get the special packet mode
-     uint8_t mode { readByte() };
+    // Reset columns in text display
+    col = 0;
 
-     switch (mode) {                                                                              // switch based on what mode the frame is
+    // Special frame
+    if(type == 65535)
+    {
+      // Get the special packet mode
+      uint8_t mode { readByte() };
 
-       // 0x00 - Game Over
+      switch (mode)
+      {
+        // 0x00 - Game Over
+        case 0:
+        {
+          // Print text until a null character is found
+          while(true)
+          {
+            const char character { readByte() };
 
-       case 0:                                                                                    // Game Over handler
-           while(true) {                                                                             // loop over text until we hit a null
-             // Read a chracter
-             char buff { readByte() };
-             printer(buff);                                                                       // print out the text using our text output handler
-             if(buff == '\0') { break; }                                                             // is it a null? then we are done printing text
-           }
-           arduboy.print("*GAME OVER*");                                                          // print generic Game Over message
-           #if USE_SERIAL == ON
-           Serial.print("*GAME OVER*");                                                           // if the serial port is turned on, print message over serial
-           #endif
-           anykey();                                                                              // wait for anykey
-           col = 0;                                                                               // reset the columns (probably not needed)
-           return;                                                                                // quit out of the VM
-           break;                                                                                 // break that will not be executed
-           
-       // 0x05 - Jump    
-           
-       case 5:                                                                                    // Jump handler
-           // Set the program counter to the address in 16 bit field
-           pc = readWord();
-           break;                                                                                 // switch break
-           
-       // 0x0D - Effects Library    
+            printer(character);
 
-       case 13:                                                                                   // Effects Handler
-       #if SFXLIB == ON                                                                           // If our effects library is switched on
-            // Get effect type
-            effect = readByte();
-            
-            switch(effect) {                                                                      // Effect switcher
-            
-               // 0x00 - Low pitched rumbling sound
-            
-               case 0:                                                                            // rumble handler
-                   #if SOUND == ON                                                                // Is sound turned on?
-                   for(int x = 60; x < 150; x++) {                                                // Low frequency sweep 
-                   sound.tone(x, 10);  delay(10); }                                       // Play our low frequency sweep
-                   #endif                                                                         // end sound check
-                   break;                                                                         // switch break
-                  
-               // 0x01 - Random lightning flash   
-                   
-               case 1:                                                                            // Random lightning flash 
-                   for(int x = 0; x < 50; x++) {                                                  // Small loop for our flashes
-                     if(random(0,10) == 1) {                                                      // 1 in 10 chance of a flash
-                            arduboy.fillScreen(WHITE);                                            // Fill screen with white
-                            arduboy.display();                                                    // push it out
-                     } 
-                     else {                                                                       // Not a 1 in 10 chance?
-                            arduboy.fillScreen(BLACK);                                            // Make screen black
-                            arduboy.display();                                                    // Push it out
-                     } 
-                     delay(20);
-                   }
-                   break;                                                                         // switch break
+            if(character == '\0')
+              break;
+          }
+          
+          // Print generic Game Over message
+          arduboy.print(F("*GAME OVER*"));
+
+          // If the serial port is turned on
+          #if USE_SERIAL == ON
+          // Print a message over serial
+          Serial.print(F("*GAME OVER*"));
+          #endif
+
+          // Wait for a key press
+          anykey();
+
+          // Exit the virtual machine
+          return;
+        }
+
+        // 0x05 - Jump
+        case 5:
+        {
+          // Set the program counter to the address in 16 bit field
+          pc = readWord();
+
+          break;
+        }
+
+        // 0x0D - Effects Library
+        case 13:
+        {
+          // If the effects library is switched on
+          #if SFXLIB == ON
+
+          // Get the effect type
+          effect = readByte();
+
+          switch(effect)
+          {
+            // 0x00 - Low pitched rumbling sound
+            case 0:
+            {
+              // If sound is turned on
+              #if SOUND == ON
+              // Do a low frequency sweep
+              for(int x = 60; x < 150; x++)
+              {
+                sound.tone(x, 10);
+                delay(10);
+              }
+              #endif
+
+              break;
             }
-       #endif
-            break;                                                                                // switch break
 
-       // 0x10 - Display page of text and wait for any key
-       
-       case 16:                                                                                   // text handler
-           while(true) {                                                                             // print some text until we find a null
-             // Read a character
-             char buff { readByte() };
-             printer(buff);                                                                       // Send text off to our printer 
-             if(buff == '\0') { break; }                                                             // Is it null? then break out of loop
-           }         
-           anykey();                                                                              // Wait for any key 
-           break;                                                                                 // Switch case break
+            // 0x01 - Random lightning flash
+            case 1:
+            {
+              // A small loop for lightning flashes
+              for(int x = 0; x < 50; x++)
+              {
+                // A 1 in 10 chance of a flash
+                arduboy.fillScreen((random(0, 10) == 0) ? WHITE : BLACK);
+                arduboy.display();
+                delay(20);
+              }
+
+              break;
+            }
+          }
+          #endif
+          break;
+        }
+
+        // 0x10 - Display page of text and wait for any key
+        case 16:
+        {
+          // Print text until a null character is found
+          while(true)
+          {
+            const char character { readByte() };
+
+            printer(character);
+
+            if(character == '\0')
+              break;
+          }
+
+        // Wait for a key press
+        anykey();
+
+        break;
+        }
+      }
     }
-  }
-  
-  // We did not find a SPECIAL frame, so we assume it is a NORMAL frame (and per framing format, it must be)
-  // We reuse the 'type' uint16_t variable as jump a's address
-  
-  else {    
+    // A room instead of a special frame
+    else
+    {
+      // Get jump A address
+      const uint16_t branchA { type };
 
-     // Jump A description buffer
-    
-      // Get jump b address
-      uint16_t alterexit { readWord() };
+      // Get jump B address
+      const uint16_t branchB { readWord() };
 
-      int i = 0;                                                                                              // initalize i (to keep track of array position)
-      while(true) {                                                                                         // fill jump a description buffer
-        // Get a chracter
-        char buff { readByte() };
-        if(buff == '\0') { exita[i] = 0; break; }                                                                // Is it null? append the null to array then stop
-        exita[i] = buff;                                                                                      // fill array with newest character
-        // Increment array position
-        i++;
+      // Copy null-terminated string to exita buffer
+      for(uint8_t index = 0; true; ++index)
+      {
+        const char character { readByte() };
+
+        exita[index] = character;
+
+        if(character == '\0')
+          break;
       }
 
-     // Jump B description buffer
+      // Copy null-terminated string to exitb buffer
+      for(uint8_t index = 0; true; ++index)
+      {
+        const char character { readByte() };
 
-      i = 0;                                                                                                  // reset array position
-      while(true) {                                                                                         // fill jump b description buffer
-        // Get a character 
-        char buff { readByte() };
-        if(buff == '\0') { exitb[i] = 0; break; }                                                                // Is it null? append the null to array then stop
-        exitb[i] = buff;                                                                                      // fill array with newest character
-        // Increment array position
-        i++;
-      } 
-      
-      int x = 0;                                                                                              // define x (we could probably still reuse i?)
- 
-      // Main description printing (since the description goes before the jump selections)
-      
-      while(true) {                                                                                              // print the main description text, null terminated
-             // Get character from main description
-             char buff { readByte() };
-             printer(buff);                                                                                   // Print out our newest character
-             if(buff == '\0') { break; }                                                                         // did we find a null? stop printing description
+        exitb[index] = character;
+
+        if(character == '\0')
+          break;
+      }
+
+      // Print the room description (a null-terminated string)
+      while(true)
+      {
+        const char character { readByte() };
+
+        printer(character);
+
+        if(character == '\0')
+          break;
       }
 
       #if SOUND == ON
       sound.tone(1318, 50); 
       #endif
-      arduboy.fillRect(arduboy.getCursorX(),arduboy.getCursorY(),8,8,BLACK); arduboy.display();
-      if(arduboy.getCursorY() < 48) { arduboy.print("\n"); 
-      #if USE_SERIAL == ON
-      Serial.println();
-      #endif
+
+      // Draw a cursor box
+      arduboy.fillRect(arduboy.getCursorX(), arduboy.getCursorY(), 8, 8, BLACK);
+      arduboy.display();
+
+      if(arduboy.getCursorY() < 48)
+      {
+        arduboy.print('\n'); 
+        #if USE_SERIAL == ON
+        Serial.println();
+        #endif
       } 
-        
-      printer('A'); printer(']'); printer(' '); arduboy.display();
+
+      printer('A');
+      printer(']');
+      printer(' ');
+      arduboy.display();
+
       #if USE_SERIAL == ON
       Serial.print("\nA] ");
       #endif
-       x = 0;
-       while(true) { 
-             printer(exita[x]);
-             if(exita[x] == 0) { break; } 
-             x++; 
-      }  
-      x = 0; 
+
+      // Print the contents of the exita buffer
+      for(uint8_t index = 0; true; ++index)
+      {
+        printer(exita[index]);
+
+        if(exita[index] == '\0')
+          break;
+      }
+
       #if SOUND == ON
       sound.tone(1318, 50); 
       #endif
-      arduboy.fillRect(arduboy.getCursorX(),arduboy.getCursorY(),8,8,BLACK); arduboy.display();
-      printer('B'); printer(']'); printer(' '); arduboy.display();
+
+      // Draw a cursor box
+      arduboy.fillRect(arduboy.getCursorX(), arduboy.getCursorY(), 8, 8, BLACK);
+      arduboy.display();
+
+      printer('B');
+      printer(']');
+      printer(' ');
+      arduboy.display();
+
       #if USE_SERIAL == ON
       Serial.print("\nB] ");
-      #endif      
-       while(true) { 
-             printer(exitb[x]);
-             if(exitb[x] == 0) { break; } 
-             x++;
-      } 
-      arduboy.fillRect(arduboy.getCursorX(),arduboy.getCursorY(),8,8,BLACK); arduboy.display();
-      int selection = select();
-      if(selection == 0) { pc = type; } 
-      if(selection == 1) { pc = alterexit; } 
+      #endif
+
+      // Print the contents of the exitb buffer
+      for(uint8_t index = 0; true; ++index)
+      {
+        printer(exitb[index]);
+
+        if(exitb[index] == '\0')
+          break;
+      }
+
+
+      // Draw a cursor box
+      arduboy.fillRect(arduboy.getCursorX(), arduboy.getCursorY(), 8, 8, BLACK);
+      arduboy.display();
+
+      // Wait for the user's input
+      const int selection { select() };
+
+      switch(selection)
+      {
+        // If the user chose A
+        case 0:
+          // Take the first branch
+          pc = branchA;
+          break;
+
+        // If the user chose B
+        case 1:
+          // Take the second branch
+          pc = branchB;
+          break;
+      }
+
       arduboy.clear();
       arduboy.display();
-      col = 0;
+    }
   }
 }
-  }
 
 
 void settings() { anykey(); } 
