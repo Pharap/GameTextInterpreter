@@ -101,6 +101,56 @@ uint16_t readWord()
   return result;
 }
 
+template<size_t size> void readString(char (&buffer)[size])
+{
+  // Avoid a buffer overrun
+  for(uint8_t index = 0; index < size; ++index)
+  {
+    // Read a character from the input
+    const char character { readCharacter() };
+
+    // Copy the character to the buffer
+    buffer[index] = character;
+
+    // If the character is null
+    if(character == '\0')
+      // Exit
+      return;
+  }
+}
+
+template<size_t size> void printString(char (&buffer)[size])
+{
+  // Avoid a buffer overrun
+  for(uint8_t index = 0; true; ++index)
+  {
+    // Read a character from the buffer
+    const char character { buffer[index] };
+
+    // Print the character
+    printer(character);
+
+    // If the character is null
+    if(character == '\0')
+      // Exit
+      return;
+  }
+}
+
+// Print text until a null character is found
+void printText()
+{
+  while(true)
+  {
+    const char character { readCharacter() };
+
+    printer(character);
+
+    if(character == '\0')
+      break;
+  }
+}
+
 void setup() {
   arduboy.begin();
   arduboy.clear();
@@ -154,15 +204,7 @@ void startVM()
         case 0:
         {
           // Print text until a null character is found
-          while(true)
-          {
-            const char character { readCharacter() };
-
-            printer(character);
-
-            if(character == '\0')
-              break;
-          }
+          printText();
           
           // Print generic Game Over message
           arduboy.print(F("*GAME OVER*"));
@@ -239,20 +281,12 @@ void startVM()
         case 16:
         {
           // Print text until a null character is found
-          while(true)
-          {
-            const char character { readCharacter() };
+          printText();
 
-            printer(character);
+          // Wait for a key press
+          anykey();
 
-            if(character == '\0')
-              break;
-          }
-
-        // Wait for a key press
-        anykey();
-
-        break;
+          break;
         }
       }
     }
@@ -266,37 +300,13 @@ void startVM()
       const uint16_t branchB { readWord() };
 
       // Copy null-terminated string to exita buffer
-      for(uint8_t index = 0; true; ++index)
-      {
-        const char character { readCharacter() };
-
-        exita[index] = character;
-
-        if(character == '\0')
-          break;
-      }
+      readString(exita);
 
       // Copy null-terminated string to exitb buffer
-      for(uint8_t index = 0; true; ++index)
-      {
-        const char character { readCharacter() };
+      readString(exitb);
 
-        exitb[index] = character;
-
-        if(character == '\0')
-          break;
-      }
-
-      // Print the room description (a null-terminated string)
-      while(true)
-      {
-        const char character { readCharacter() };
-
-        printer(character);
-
-        if(character == '\0')
-          break;
-      }
+      // Print the room description
+      printText();
 
       #if SOUND == ON
       sound.tone(1318, 50); 
@@ -324,13 +334,7 @@ void startVM()
       #endif
 
       // Print the contents of the exita buffer
-      for(uint8_t index = 0; true; ++index)
-      {
-        printer(exita[index]);
-
-        if(exita[index] == '\0')
-          break;
-      }
+      printString(exita);
 
       #if SOUND == ON
       sound.tone(1318, 50); 
@@ -350,14 +354,7 @@ void startVM()
       #endif
 
       // Print the contents of the exitb buffer
-      for(uint8_t index = 0; true; ++index)
-      {
-        printer(exitb[index]);
-
-        if(exitb[index] == '\0')
-          break;
-      }
-
+      printString(exitb);
 
       // Draw a cursor box
       arduboy.fillRect(arduboy.getCursorX(), arduboy.getCursorY(), 8, 8, BLACK);
