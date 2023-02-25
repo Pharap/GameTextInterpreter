@@ -121,13 +121,14 @@ void showIntro()    // Show Arduino retro intro
 }
 
 void startVM() {
- while(true) {  
-  uint16_t type = (pgm_read_byte_near(&(gti[pc])) << 8) | (pgm_read_byte_near(&(gti[pc+1])) & 0xFF);  // Read in type of frame
-  pc++;                                                                                           // bump program counter
+ while(true) {
+  // Read in type of frame
+  uint16_t type { readWord() };
+
   col = 0;                                                                                        // reset columns in text display
   if(type == 65535) {                                                                             // SPECIAL Frame Detected
-     pc++;                                                                                        // bump program counter
-     uint8_t mode = pgm_read_byte_near(&(gti[pc]));                                               // get the special packet mode
+     // Get the special packet mode
+     uint8_t mode { readByte() };
 
      switch (mode) {                                                                              // switch based on what mode the frame is
 
@@ -135,8 +136,8 @@ void startVM() {
 
        case 0:                                                                                    // Game Over handler
            while(true) {                                                                             // loop over text until we hit a null
-             pc++;                                                                                // bump program counter
-             char buff = pgm_read_byte_near(&(gti[pc]));                                       // read a chracter
+             // Read a chracter
+             char buff { readByte() };
              printer(buff);                                                                       // print out the text using our text output handler
              if(buff == '\0') { break; }                                                             // is it a null? then we are done printing text
            }
@@ -152,16 +153,16 @@ void startVM() {
        // 0x05 - Jump    
            
        case 5:                                                                                    // Jump handler
-           pc++;                                                                                  // bump the program counter
-           pc = (pgm_read_byte_near(&(gti[pc])) << 8) | (pgm_read_byte_near(&(gti[pc+1])) & 0xFF);    // Set the program counter to the address in 16 bit field
+           // Set the program counter to the address in 16 bit field
+           pc = readWord();
            break;                                                                                 // switch break
            
        // 0x0D - Effects Library    
 
        case 13:                                                                                   // Effects Handler
        #if SFXLIB == ON                                                                           // If our effects library is switched on
-            pc++;                                                                                 // Bump program counter
-            effect = pgm_read_byte_near(&(gti[pc]));                                              // Get effect type
+            // Get effect type
+            effect = readByte();
             
             switch(effect) {                                                                      // Effect switcher
             
@@ -189,10 +190,7 @@ void startVM() {
                      delay(20);
                    }
                    break;                                                                         // switch break
-            }  
-            pc++;                                                                                 // Bump program counter
-       #else                                                                                      // Otherwise, is the SFX mode disabled?
-         pc++; pc++;                                                                              // Increment program counter so we dont lose position
+            }
        #endif
             break;                                                                                // switch break
 
@@ -200,13 +198,12 @@ void startVM() {
        
        case 16:                                                                                   // text handler
            while(true) {                                                                             // print some text until we find a null
-             pc++;                                                                                // Bump program counter
-             char buff = pgm_read_byte_near(&(gti[pc]));                                       // Read a character
+             // Read a character
+             char buff { readByte() };
              printer(buff);                                                                       // Send text off to our printer 
              if(buff == '\0') { break; }                                                             // Is it null? then break out of loop
            }         
            anykey();                                                                              // Wait for any key 
-           pc++;                                                                                  // Bump program counter
            break;                                                                                 // Switch case break
     }
   }
@@ -218,26 +215,29 @@ void startVM() {
 
      // Jump A description buffer
     
-      pc++;                                                                                                   // bump program counter
-      uint16_t alterexit = (pgm_read_byte_near(&(gti[pc])) << 8) | (pgm_read_byte_near(&(gti[pc+1])) & 0xFF); // get jump b address
-      pc++; pc++;                                                                                             // bump program counter
+      // Get jump b address
+      uint16_t alterexit { readWord() };
+
       int i = 0;                                                                                              // initalize i (to keep track of array position)
       while(true) {                                                                                         // fill jump a description buffer
-        char buff = pgm_read_byte_near(&(gti[pc]));                                                        // get a chracter
+        // Get a chracter
+        char buff { readByte() };
         if(buff == '\0') { exita[i] = 0; break; }                                                                // Is it null? append the null to array then stop
         exita[i] = buff;                                                                                      // fill array with newest character
-        i++; pc++;                                                                                            // bump array position and program counter
+        // Increment array position
+        i++;
       }
 
      // Jump B description buffer
-      
-      pc++;                                                                                                   // bump program counter
+
       i = 0;                                                                                                  // reset array position
-      while(true) {                                                                                         // fill jump b description buffer 
-        char buff = pgm_read_byte_near(&(gti[pc]));                                                        // get a character
+      while(true) {                                                                                         // fill jump b description buffer
+        // Get a character 
+        char buff { readByte() };
         if(buff == '\0') { exitb[i] = 0; break; }                                                                // Is it null? append the null to array then stop
         exitb[i] = buff;                                                                                      // fill array with newest character
-        i++; pc++;                                                                                            // bump array position and program counter
+        // Increment array position
+        i++;
       } 
       
       int x = 0;                                                                                              // define x (we could probably still reuse i?)
@@ -245,12 +245,12 @@ void startVM() {
       // Main description printing (since the description goes before the jump selections)
       
       while(true) {                                                                                              // print the main description text, null terminated
-             pc++;                                                                                            // bump program counter
-             char buff = pgm_read_byte_near(&(gti[pc]));                                                   // get character from main description
+             // Get character from main description
+             char buff { readByte() };
              printer(buff);                                                                                   // Print out our newest character
              if(buff == '\0') { break; }                                                                         // did we find a null? stop printing description
-      }  
-      pc++; 
+      }
+
       #if SOUND == ON
       sound.tone(1318, 50); 
       #endif
