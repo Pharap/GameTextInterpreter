@@ -128,7 +128,7 @@ template<size_t size> void printString(char (&buffer)[size])
     const char character { buffer[index] };
 
     // Print the character
-    printer(character);
+    printCharacter(character);
 
     // If the character is null
     if(character == '\0')
@@ -144,7 +144,7 @@ void printText()
   {
     const char character { readCharacter() };
 
-    printer(character);
+    printCharacter(character);
 
     if(character == '\0')
       break;
@@ -216,7 +216,7 @@ void startVM()
           #endif
 
           // Wait for a key press
-          anykey();
+          awaitKey();
 
           // Reset program counter
           pc = 0;
@@ -287,7 +287,7 @@ void startVM()
           printText();
 
           // Wait for a key press
-          anykey();
+          awaitKey();
 
           break;
         }
@@ -327,9 +327,9 @@ void startVM()
         #endif
       } 
 
-      printer('A');
-      printer(']');
-      printer(' ');
+      printCharacter('A');
+      printCharacter(']');
+      printCharacter(' ');
       arduboy.display();
 
       #if USE_SERIAL == ON
@@ -347,9 +347,9 @@ void startVM()
       arduboy.fillRect(arduboy.getCursorX(), arduboy.getCursorY(), 8, 8, BLACK);
       arduboy.display();
 
-      printer('B');
-      printer(']');
-      printer(' ');
+      printCharacter('B');
+      printCharacter(']');
+      printCharacter(' ');
       arduboy.display();
 
       #if USE_SERIAL == ON
@@ -364,7 +364,7 @@ void startVM()
       arduboy.display();
 
       // Wait for the user's input
-      const int selection { select() };
+      const int selection { awaitSelection() };
 
       switch(selection)
       {
@@ -387,8 +387,6 @@ void startVM()
   }
 }
 
-void settings() { anykey(); }
-
 constexpr uint8_t charsPerLine = 21;
 // One extra to detect end of line word break
 constexpr uint8_t linebufferSize = charsPerLine + 1;
@@ -396,7 +394,7 @@ constexpr uint8_t linebufferLastPos = charsPerLine;
 
 char lineBuffer[linebufferSize];
 
-void printer(char character)
+void printCharacter(char character)
 {
   // Copy character to buffer
   lineBuffer[col] = character;
@@ -491,7 +489,7 @@ void printer(char character)
   #endif
 }
 
-uint8_t select()
+uint8_t awaitSelection()
 {
   #if SOUND == ON
     sound.tone(1318, 50);
@@ -531,7 +529,7 @@ uint8_t select()
   }
 }
 
-void anykey()
+void awaitKey()
 { 
   arduboy.fillRect(arduboy.getCursorX(), arduboy.getCursorY(), 8, 8, BLACK);
   arduboy.display(); 
