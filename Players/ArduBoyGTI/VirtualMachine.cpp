@@ -9,7 +9,7 @@
 char exita[80] {};
 char exitb[80] {};
 
-void startVM()
+void runVM()
 {
   while(true)
   {
