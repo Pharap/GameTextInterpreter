@@ -82,10 +82,11 @@ void awaitKey(bool ending)
 
     ++counter;
 
+    // Blink every 400ms (40 * 10ms)
     if(counter > 40)
     {
+      // Reset the counter
       counter = 0;
-      blink = !blink;
 
       // Draw blinking cursor
       if(ending)
@@ -99,6 +100,9 @@ void awaitKey(bool ending)
       {
         arduboy.fillRect(120, 55, 10, 10, blink ? WHITE : BLACK);
       }
+
+      // Toggle blink
+      blink = !blink;
 
       updateDisplay();
     }
