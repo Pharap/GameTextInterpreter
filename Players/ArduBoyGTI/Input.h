@@ -5,3 +5,5 @@
 uint8_t awaitSelection();
 
 void awaitKey();
+
+void awaitKeyEnding();
