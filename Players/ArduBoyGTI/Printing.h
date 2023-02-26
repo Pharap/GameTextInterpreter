@@ -2,6 +2,8 @@
 
 #include "CodeReading.h"
 
+extern uint8_t col;
+
 void printCharacter(char character);
 
 template<size_t size>
