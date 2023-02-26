@@ -61,18 +61,6 @@ char exitb[80] {};
 
 uint16_t pc { 0 };
 
-char readCharacter()
-{
-  // Read the byte
-  const uint8_t result { pgm_read_byte(&gti[pc]) };
-
-  // Increment the program counter
-  ++pc;
-
-  // Return the result
-  return result;
-}
-
 uint8_t readByte()
 {
   // Read the byte
@@ -98,6 +86,11 @@ uint16_t readWord()
 
   // Return the result
   return result;
+}
+
+char readCharacter()
+{
+  return readByte();
 }
 
 template<size_t size> void readString(char (&buffer)[size])
