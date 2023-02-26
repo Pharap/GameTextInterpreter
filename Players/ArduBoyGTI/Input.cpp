@@ -43,7 +43,7 @@ uint8_t awaitSelection()
   }
 }
 
-void awaitKey()
+void awaitKey(bool ending)
 { 
   arduboy.fillRect(arduboy.getCursorX(), arduboy.getCursorY(), 8, 8, BLACK);
   updateDisplay(); 
@@ -82,13 +82,28 @@ void awaitKey()
 
     ++counter;
 
+    // Blink every 400ms (40 * 10ms)
     if(counter > 40)
     {
+      // Reset the counter
       counter = 0;
-      blink = !blink;
 
       // Draw blinking cursor
-      arduboy.fillRect(120, 55, 10, 10, blink ? WHITE : BLACK);
+      if(ending)
+      {
+        if(blink)
+          arduboy.fillRect(125, 60, 1, 1, WHITE);
+        else
+          arduboy.fillRect(120, 55, 10, 10, BLACK);
+      }
+      else
+      {
+        arduboy.fillRect(120, 55, 10, 10, blink ? WHITE : BLACK);
+      }
+
+      // Toggle blink
+      blink = !blink;
+
       updateDisplay();
     }
 

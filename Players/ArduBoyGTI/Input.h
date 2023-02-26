@@ -4,4 +4,4 @@
 
 uint8_t awaitSelection();
 
-void awaitKey();
+void awaitKey(bool ending = false);
