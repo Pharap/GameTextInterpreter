@@ -10,13 +10,7 @@
 #include "CodeReading.h"
 #include "Printing.h"
 #include "Input.h"
-
-extern const unsigned char arduino[];
-
-PROGMEM const unsigned char arduino [] = {
-0x3F, 0xFF, 0xFF, 0xFC, 0x40, 0x00, 0x00, 0x02, 0x89, 0x99, 0x54, 0x91, 0x95, 0x55, 0x56, 0xA9,
-0x9D, 0x95, 0x55, 0xA9, 0x95, 0x59, 0xD4, 0x91, 0x40, 0x00, 0x00, 0x02, 0x3F, 0xFF, 0xFF, 0xFC
-};
+#include "Intro.h"
 
 char exita[80] {};
 char exitb[80] {};
@@ -34,22 +28,6 @@ void setup() {
 
 void loop() {
   startVM();
-}
-
-void showIntro()    // Show Arduino retro intro
-{
-   for(int i=-8; i<28; i=i+2) {
-    arduboy.clear();
-    arduboy.drawSlowXYBitmap(46,i, arduino, 32,8,1);
-    arduboy.display();
-    delay(1000/30);
-  }  
-  #if SOUND == ON
-   sound.tone(987, 160);
-    delay(160);
-   sound.tone(1318, 400);
-   delay(2000);
-  #endif
 }
 
 enum class Mode : uint8_t
