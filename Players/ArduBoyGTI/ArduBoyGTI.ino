@@ -2,6 +2,7 @@
 
 // Replace gti[] in Bytecode.h with your compiled game bytecode by using compiler.py and bin2array.py
 
+#include "Settings.h"
 #include "Arduboy.h"
 #include "Intro.h"
 #include "VirtualMachine.h"
@@ -18,6 +19,10 @@ void setup()
 
   #if USE_SERIAL == ON
   Serial.begin(9600);
+  #endif
+
+  #if FX_MODE == ON
+  FX::begin(FX_DATA_PAGE);
   #endif
 }
 

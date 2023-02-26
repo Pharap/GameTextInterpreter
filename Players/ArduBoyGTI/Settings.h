@@ -3,8 +3,10 @@
 #define ON true
 #define OFF false
 
-// Game options
-// Interpreter size tuning (turning off some interpreter support can save PROGMEM memory, but code must not contain related bytecode (unless stated!)
+// Enables or disables ArduboyFX mode:
+// * ON - Read from the FX chip
+// * OFF - Read from progmem
+#define FX_MODE OFF
 
 // 574 bytes (If support is disabled, bytecode is skipped properly)
 #define SOUND ON
@@ -20,6 +22,5 @@
 #define VECTOR ON
 
 // Button definition
-
 #define FIRE_BUTTON B_BUTTON
 #define JUMP_BUTTON A_BUTTON
