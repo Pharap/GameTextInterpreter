@@ -15,8 +15,6 @@
 uint8_t state = 0;
 uint16_t room = 0;
 uint8_t inst = 0;
-uint8_t col = 0;
-uint8_t row = 0;
 
 extern const unsigned char arduino[];
 
