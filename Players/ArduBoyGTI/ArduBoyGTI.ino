@@ -2,16 +2,9 @@
 
 // replace char gti[]  with your compiled game bytecode by using compiler.py and bin2array.py -- it is currently silence.bin now
 
-// Standard includes for Arduboy 
- 
-#include <Arduboy2.h>
-#include <ArduboyTones.h>
-
 #include <avr/pgmspace.h>
 
-Arduboy2 arduboy;
-ArduboyTones sound(arduboy.audio.enabled);
-
+#include "Arduboy.h"
 #include "Settings.h"
 #include "Bytecode.h"
 #include "CodeReading.h"
