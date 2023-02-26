@@ -128,7 +128,7 @@ void runVM()
           drawEnding();
 
           // Wait for the final key press
-          awaitKeyEnding();
+          awaitKey(true);
 
           // Reset program counter
           pc = 0;
