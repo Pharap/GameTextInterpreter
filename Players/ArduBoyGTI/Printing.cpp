@@ -10,7 +10,6 @@ constexpr uint8_t linebufferLastPos = charsPerLine;
 char lineBuffer[linebufferSize];
 
 uint8_t col = 0;
-uint8_t row = 0;
 
 void printCharacter(char character)
 {

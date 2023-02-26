@@ -10,12 +10,6 @@
 #include "CodeReading.h"
 #include "Printing.h"
 
-// Init system variables
-
-uint8_t state = 0;
-uint16_t room = 0;
-uint8_t inst = 0;
-
 extern const unsigned char arduino[];
 
 PROGMEM const unsigned char arduino [] = {
