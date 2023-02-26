@@ -2,37 +2,17 @@
 
 // replace char gti[]  with your compiled game bytecode by using compiler.py and bin2array.py -- it is currently silence.bin now
 
-#define ON 1
-#define OFF 0
-
 // Standard includes for Arduboy 
  
-#include <EEPROM.h>
 #include <Arduboy2.h>
 #include <ArduboyTones.h>
+
 #include <avr/pgmspace.h>
+
 Arduboy2 arduboy;
 ArduboyTones sound(arduboy.audio.enabled);
 
-// Game options
-// Interpreter size tuning (turning off some interpreter support can save PROGMEM memory, but code must not contain related bytecodes (unless stated!)
-
-#define SOUND ON             // 574 bytes (If support is disabled, bytecode is skipped properly)
-#define USE_SERIAL OFF       // 182 bytes (no impact on bytecode interpreting)
-
-#define VARIABLES ON
-#define MUSIC ON
-#define SFXLIB ON            // 496 bytes (If support is disabled, bytecode is skipped properly)
-#define VECTOR ON
-
-// Button definition
-
-#define FIRE_BUTTON B_BUTTON
-#define JUMP_BUTTON A_BUTTON
-#define RIGHT 4
-#define DOWN 64
-#define UP 16
-#define LEFT 32
+#include "Settings.h"
 
 // Init system variables
 
