@@ -93,7 +93,7 @@ void runVM()
               {
                 // A 1 in 10 chance of a flash
                 arduboy.fillScreen((random(0, 10) == 0) ? WHITE : BLACK);
-                arduboy.display();
+                updateDisplay();
                 delay(20);
               }
 
@@ -140,7 +140,7 @@ void runVM()
 
       // Draw a cursor box
       arduboy.fillRect(arduboy.getCursorX(), arduboy.getCursorY(), 8, 8, BLACK);
-      arduboy.display();
+      updateDisplay();
 
       if(arduboy.getCursorY() < 48)
       {
@@ -153,7 +153,7 @@ void runVM()
       printCharacter('A');
       printCharacter(']');
       printCharacter(' ');
-      arduboy.display();
+      updateDisplay();
 
       #if USE_SERIAL == ON
       Serial.print("\nA] ");
@@ -168,12 +168,12 @@ void runVM()
 
       // Draw a cursor box
       arduboy.fillRect(arduboy.getCursorX(), arduboy.getCursorY(), 8, 8, BLACK);
-      arduboy.display();
+      updateDisplay();
 
       printCharacter('B');
       printCharacter(']');
       printCharacter(' ');
-      arduboy.display();
+      updateDisplay();
 
       #if USE_SERIAL == ON
       Serial.print("\nB] ");
@@ -184,7 +184,7 @@ void runVM()
 
       // Draw a cursor box
       arduboy.fillRect(arduboy.getCursorX(), arduboy.getCursorY(), 8, 8, BLACK);
-      arduboy.display();
+      updateDisplay();
 
       // Wait for the user's input
       const int selection { awaitSelection() };
@@ -205,7 +205,7 @@ void runVM()
       }
 
       arduboy.clear();
-      arduboy.display();
+      updateDisplay();
     }
   }
 }

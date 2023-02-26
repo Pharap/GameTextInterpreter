@@ -11,3 +11,12 @@
 
 extern Arduboy2 arduboy;
 extern ArduboyTones sound;
+
+inline void updateDisplay()
+{
+	#if FX_MODE == ON
+	FX::display()
+	#else
+	arduboy.display();
+	#endif
+}

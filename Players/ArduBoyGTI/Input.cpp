@@ -36,7 +36,7 @@ uint8_t awaitSelection()
 
       // Draw blinking cursor
       arduboy.fillRect(120, 55, 10, 10, blink ? WHITE : BLACK);
-      arduboy.display();
+      updateDisplay();
     }
 
     delay(10);
@@ -46,7 +46,7 @@ uint8_t awaitSelection()
 void awaitKey()
 { 
   arduboy.fillRect(arduboy.getCursorX(), arduboy.getCursorY(), 8, 8, BLACK);
-  arduboy.display(); 
+  updateDisplay(); 
 
   #if SOUND == ON
     sound.tone(600, 50);
@@ -89,14 +89,14 @@ void awaitKey()
 
       // Draw blinking cursor
       arduboy.fillRect(120, 55, 10, 10, blink ? WHITE : BLACK);
-      arduboy.display();
+      updateDisplay();
     }
 
     delay(10);
   }
 
   arduboy.clear();
-  arduboy.display();
+  updateDisplay();
 
   #if SERIAL == ON
   Serial.println("\n"); 

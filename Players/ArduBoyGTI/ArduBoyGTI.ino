@@ -15,7 +15,7 @@ void setup()
   showIntro();
 
   arduboy.clear();
-  arduboy.display();
+  updateDisplay();
 
   #if USE_SERIAL == ON
   Serial.begin(9600);

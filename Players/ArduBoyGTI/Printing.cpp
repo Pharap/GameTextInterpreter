@@ -86,7 +86,7 @@ void printCharacter(char character)
     #endif
 
     arduboy.fillRect(arduboy.getCursorX(), arduboy.getCursorY(), 8, 8, WHITE); 
-    arduboy.display();
+    updateDisplay();
 
     delay(50);
   }

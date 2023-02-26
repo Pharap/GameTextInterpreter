@@ -16,7 +16,7 @@ void showIntro()    // Show Arduino retro intro
   {
     arduboy.clear();
     arduboy.drawSlowXYBitmap(46, i, arduino, 32, 8, 1);
-    arduboy.display();
+    updateDisplay();
     delay(1000/30);
   }
 
