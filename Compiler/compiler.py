@@ -145,7 +145,7 @@ for i in range(0,len(rooms)):
 #     quit()
  
 print "Compile complete."
-o = open(destination,"w")
+o = open(destination,"wb")
 o.write(compiled)
 o.close()
 print "Written to "+destination+"."
