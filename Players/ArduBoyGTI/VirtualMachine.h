@@ -8,6 +8,7 @@ enum class Mode : uint8_t
   Jump = 0x05,
   Effect = 0x0D,
   Text = 0x10,
+  Ending = 0x15,
 };
 
 enum class Effect : uint8_t

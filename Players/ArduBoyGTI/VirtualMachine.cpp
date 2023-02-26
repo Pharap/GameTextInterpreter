@@ -5,6 +5,7 @@
 #include "CodeReading.h"
 #include "Printing.h"
 #include "Input.h"
+#include "Ending.h"
 
 char exita[80] {};
 char exitb[80] {};
@@ -113,6 +114,27 @@ void runVM()
           awaitKey();
 
           break;
+        }
+
+        case Mode::Ending:
+        {
+          // Print text until a null character is found
+          printText();
+
+          // Wait for a key press
+          awaitKey();
+
+          // Draw ending bitmap
+          drawEnding();
+
+          // Wait for the final key press
+          awaitKeyEnding();
+
+          // Reset program counter
+          pc = 0;
+
+          // Exit the virtual machine
+          return;
         }
       }
     }
